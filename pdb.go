@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/sergeyzav/gomemprocfs/internal/ffi"
+	"github.com/Get-Sybers/gomemprocfs/internal/ffi"
 )
 
 // PdbLoad loads the PDB symbol file for the given module and returns

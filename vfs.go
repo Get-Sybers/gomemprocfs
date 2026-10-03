@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/sergeyzav/gomemprocfs/internal/ffi"
+	"github.com/Get-Sybers/gomemprocfs/internal/ffi"
 )
 
 // vfsPath normalises a path for VfsListBlobU which requires backslash separators.
