@@ -3,7 +3,7 @@ package memprocfs
 import (
 	"unsafe"
 
-	"github.com/sergeyzav/gomemprocfs/internal/ffi"
+	"github.com/Get-Sybers/gomemprocfs/internal/ffi"
 )
 
 // KObjectEntry represents a single kernel object entry.

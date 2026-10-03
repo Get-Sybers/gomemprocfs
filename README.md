@@ -1,7 +1,7 @@
 # go-memprocfs
 
-[![Build](https://github.com/sergeyzav/gomemprocfs/actions/workflows/build.yml/badge.svg)](https://github.com/sergeyzav/gomemprocfs/actions/workflows/build.yml)
-[![Test](https://github.com/sergeyzav/gomemprocfs/actions/workflows/test.yml/badge.svg)](https://github.com/sergeyzav/gomemprocfs/actions/workflows/test.yml)
+[![Build](https://github.com/Get-Sybers/gomemprocfs/actions/workflows/build.yml/badge.svg)](https://github.com/Get-Sybers/gomemprocfs/actions/workflows/build.yml)
+[![Test](https://github.com/Get-Sybers/gomemprocfs/actions/workflows/test.yml/badge.svg)](https://github.com/Get-Sybers/gomemprocfs/actions/workflows/test.yml)
 
 Go bindings for [MemProcFS](https://github.com/ufrisk/MemProcFS), providing live memory analysis and forensics capabilities via a pure Go API without CGo.
 
@@ -26,7 +26,7 @@ Download the native libraries from the [MemProcFS releases page](https://github.
 ## Installation
 
 ```sh
-go get github.com/sergeyzav/gomemprocfs
+go get github.com/Get-Sybers/gomemprocfs
 ```
 
 ## Quick Start
@@ -38,7 +38,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/sergeyzav/gomemprocfs"
+    "github.com/Get-Sybers/gomemprocfs"
 )
 
 func main() {

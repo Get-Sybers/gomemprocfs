@@ -14,7 +14,7 @@ import (
 	"unsafe"
 
 	"github.com/ebitengine/purego"
-	"github.com/sergeyzav/gomemprocfs/internal/ffi"
+	"github.com/Get-Sybers/gomemprocfs/internal/ffi"
 )
 
 // Vmm is a handle to an active MemProcFS session.

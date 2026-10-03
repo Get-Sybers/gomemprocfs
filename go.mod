@@ -1,6 +1,6 @@
-module github.com/sergeyzav/gomemprocfs
+module github.com/Get-Sybers/gomemprocfs
 
-go 1.25.2
+go 1.27.1
 
 require (
 	github.com/ebitengine/purego v0.9.0
