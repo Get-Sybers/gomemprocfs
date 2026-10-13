@@ -31,7 +31,7 @@ const (
 	MemFlagCacheRecentOnly MemFlag = 0x0200
 
 	// MemFlagForceCacheReadDisable disables VMMDLL_FLAG_FORCECACHE_READ.
-	// Recommended for local files to improve forensic artifact ordering.
+	// Recommended for local files to improve forensic artefact ordering.
 	MemFlagForceCacheReadDisable MemFlag = 0x0800
 
 	// MemFlagScatterPrepareExNoMemZero skips zero-ing the buffer when
@@ -45,7 +45,7 @@ const (
 	MemFlagScatterForcePageRead MemFlag = 0x4000
 )
 
-// ModuleFlag controls module enumeration behavior.
+// ModuleFlag controls module enumeration behaviour.
 type ModuleFlag uint32
 
 const (
@@ -56,4 +56,3 @@ const (
 	// ModuleFlagVersionInfo includes version info (company, description, version, etc.).
 	ModuleFlagVersionInfo ModuleFlag = 2
 )
-

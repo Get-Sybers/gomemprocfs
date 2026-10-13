@@ -127,17 +127,17 @@ const (
 // pfnEntryInternal mirrors VMMDLL_MAP_PFNENTRY (96 bytes on x64).
 // Unions and bitfields are flattened; padding fields match C struct alignment.
 type pfnEntryInternal struct {
-	DwPfn         uint32
-	TpExtended    uint32
-	AddressRaw    [5]uint32 // union: dwPid or dwPfnPte[5]
-	_             uint32    // padding: align AddressVa to 8 bytes
-	AddressVa     uint64
-	VaPte         uint64
-	OriginalPte   uint64
-	U3            uint32 // bitfield: [15:0] ReferenceCount, [18:16] PageLocation
-	_             uint32 // padding: align U4 to 8 bytes
-	U4            uint64
-	_FutureUse    [6]uint32
+	DwPfn       uint32
+	TpExtended  uint32
+	AddressRaw  [5]uint32 // union: dwPid or dwPfnPte[5]
+	_           uint32    // padding: align AddressVa to 8 bytes
+	AddressVa   uint64
+	VaPte       uint64
+	OriginalPte uint64
+	U3          uint32 // bitfield: [15:0] ReferenceCount, [18:16] PageLocation
+	_           uint32 // padding: align U4 to 8 bytes
+	U4          uint64
+	_FutureUse  [6]uint32
 }
 
 // pfnListInternal mirrors VMMDLL_MAP_PFN.
@@ -152,8 +152,8 @@ type pfnListInternal struct {
 type PfnEntry struct {
 	Pfn            uint32
 	TypeExtended   PfnTypeExtended
-	Pid            uint32  // valid for active non-prototype pages
-	Va             uint64  // virtual address (non-zero when known)
+	Pid            uint32 // valid for active non-prototype pages
+	Va             uint64 // virtual address (non-zero when known)
 	VaPte          uint64
 	OriginalPte    uint64
 	Type           PfnType // page location type (PageLocation bitfield)
@@ -212,18 +212,18 @@ const (
 
 // vmEntryInternal mirrors VMMDLL_MAP_VMENTRY (64 bytes on x64).
 type vmEntryInternal struct {
-	HVM               uintptr // VMMVM_HANDLE
-	UszName           uintptr // LPSTR
-	GpaMax            uint64
-	Tp                uint32 // VMMDLL_VM_TP
-	FActive           uint32 // BOOL
-	FReadOnly         uint32 // BOOL
-	FPhysicalOnly     uint32 // BOOL
-	DwPartitionID     uint32
-	DwVersionBuild    uint32
-	TpSystem          uint32 // VMMDLL_SYSTEM_TP
-	DwParentVmmMount  uint32
-	DwVmMemPID        uint32
+	HVM              uintptr // VMMVM_HANDLE
+	UszName          uintptr // LPSTR
+	GpaMax           uint64
+	Tp               uint32 // VMMDLL_VM_TP
+	FActive          uint32 // BOOL
+	FReadOnly        uint32 // BOOL
+	FPhysicalOnly    uint32 // BOOL
+	DwPartitionID    uint32
+	DwVersionBuild   uint32
+	TpSystem         uint32 // VMMDLL_SYSTEM_TP
+	DwParentVmmMount uint32
+	DwVmMemPID       uint32
 }
 
 // vmListInternal mirrors VMMDLL_MAP_VM.

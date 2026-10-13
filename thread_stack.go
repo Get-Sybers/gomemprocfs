@@ -8,14 +8,14 @@ import (
 
 // ThreadCallstackEntry represents a single entry in the thread callstack.
 type ThreadCallstackEntry struct {
-	Index          uint32
-	RegPresent     bool
-	RetAddr        uint64
-	RSP            uint64
-	BaseSP         uint64
-	Displacement   uint32
-	ModuleName     string
-	FunctionName   string
+	Index        uint32
+	RegPresent   bool
+	RetAddr      uint64
+	RSP          uint64
+	BaseSP       uint64
+	Displacement uint32
+	ModuleName   string
+	FunctionName string
 }
 
 // threadCallstackEntryInternal mirrors the C struct VMMDLL_MAP_THREAD_CALLSTACKENTRY.
@@ -71,10 +71,10 @@ func (vmm *Vmm) GetThreadCallstack(pid, tid uint32) (*ThreadCallstack, error) {
 
 	if pCallstackMap.CMap == 0 {
 		return &ThreadCallstack{
-			Version: pCallstackMap.DwVersion,
-			PID:     pCallstackMap.DwPID,
-			TID:     pCallstackMap.DwTID,
-			Text:    ffi.CStringToGo(pCallstackMap.UszText),
+			Version:   pCallstackMap.DwVersion,
+			PID:       pCallstackMap.DwPID,
+			TID:       pCallstackMap.DwTID,
+			Text:      ffi.CStringToGo(pCallstackMap.UszText),
 			MultiText: string(unsafe.Slice((*byte)(unsafe.Pointer(pCallstackMap.PbMultiText)), pCallstackMap.CbMultiText)),
 		}, nil
 	}

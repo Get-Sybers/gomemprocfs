@@ -73,7 +73,7 @@ func TestRegQueryValueEx(t *testing.T) {
 		utf16[i] = uint16(data[2*i]) | uint16(data[2*i+1])<<8
 	}
 	// Trim null terminator
-	name := string(rune(0))
+	var name string
 	var runes []rune
 	for _, u := range utf16 {
 		if u == 0 {
