@@ -12,7 +12,7 @@ All notable changes are documented here, following
   shuffled tests with coverage, `go mod tidy -diff`, Windows and macOS
   cross-compiles, a `go:generate` drift check and `scripts/structlint.sh`),
   `make lint` (golangci-lint v2, `.golangci.yml`) and `make vuln`
-  (govulncheck), run by the `CI` workflow on every push and pull request — on
+  (govulncheck), run by the `CI` workflow on pull requests and `main` — on
   amd64 and arm64 — with `all_green` as the one required status check. It
   replaces the `Build` workflow.
 - Repository hygiene: `.editorconfig`, `.gitattributes`, `.shellcheckrc`,
