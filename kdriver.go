@@ -8,14 +8,14 @@ import (
 
 // KDriverEntry represents a single kernel driver entry.
 type KDriverEntry struct {
-	Va               uint64
-	VaDriverStart    uint64
-	CbDriverSize     uint64
-	VaDeviceObject   uint64
-	Name             string
-	Path             string
-	ServiceKeyName   string
-	MajorFunction    [28]uint64
+	Va             uint64
+	VaDriverStart  uint64
+	CbDriverSize   uint64
+	VaDeviceObject uint64
+	Name           string
+	Path           string
+	ServiceKeyName string
+	MajorFunction  [28]uint64
 }
 
 // KDriverList contains a list of kernel drivers.

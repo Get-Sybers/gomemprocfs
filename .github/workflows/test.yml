@@ -1,43 +1,57 @@
 name: Test
 
+# The MemProcFS integration tests: the native library plus a real memory dump
+# fetched from Google Cloud Storage with the identity the repository's
+# variables and secrets name (upstream's infrastructure). The jobs run only
+# where that is configured (GCS_MEMDUMP_PATH set); elsewhere they are skipped,
+# not failed. `CI` (ci.yml) is the gate: the library-free tests, the lint and
+# the structure run there on every pull request and on main.
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   prepare:
     name: Prepare Matrix
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    if: vars.GCS_MEMDUMP_PATH != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     outputs:
       memprocfs-versions: ${{ steps.get-versions.outputs.versions }}
       dump-cache-key: ${{ steps.set-dump-key.outputs.key }}
     steps:
-      - name: Fetch Latest MemProcFS Versions
+      - name: Fetch the latest MemProcFS versions
         id: get-versions
         run: |
-          # Fetch the last 3 non-draft, non-prerelease tags
+          # the last 3 non-draft, non-prerelease tags
           VERSIONS=$(curl -sfL https://api.github.com/repos/ufrisk/MemProcFS/releases | jq -c '[.[] | select(.prerelease==false and .draft==false) | .tag_name] | .[0:3]')
           echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
 
-      - name: Generate dump cache key
+      - name: Generate the dump cache key
         id: set-dump-key
         env:
           GCS_MEMDUMP_PATH: ${{ vars.GCS_MEMDUMP_PATH }}
         run: |
-          # Create a key based on the dump path. If the path changes, the cache breaks.
+          # a key from the dump path: a new path breaks the cache
           HASH=$(echo -n "$GCS_MEMDUMP_PATH" | sha256sum | awk '{print $1}')
           echo "key=memdump-zst-$HASH" >> "$GITHUB_OUTPUT"
 
   test:
     name: Test (${{ matrix.memprocfs-version }})
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write # the Google Cloud workload-identity exchange
     strategy:
       fail-fast: false
       matrix:
@@ -47,32 +61,33 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
-      - name: Cache compressed memory dump
+      - name: Cache the compressed memory dump
         id: cache-dump
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: dumps/memdump.raw.zst
           key: ${{ needs.prepare.outputs.dump-cache-key }}
 
       - name: Authenticate to Google Cloud
         if: steps.cache-dump.outputs.cache-hit != 'true'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Set up gcloud
         if: steps.cache-dump.outputs.cache-hit != 'true'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
-      - name: Download memory dump (if not cached)
+      - name: Download the memory dump (if not cached)
         if: steps.cache-dump.outputs.cache-hit != 'true'
         env:
           GCS_MEMDUMP_PATH: ${{ vars.GCS_MEMDUMP_PATH }}
@@ -80,17 +95,15 @@ jobs:
           mkdir -p dumps
           gcloud storage cp "$GCS_MEMDUMP_PATH" dumps/memdump.raw.zst
 
-      - name: Decompress memory dump
-        run: |
-          # Decompress from the cached (or freshly downloaded) .zst file
-          zstd -d dumps/memdump.raw.zst -o dumps/memdump.raw
+      - name: Decompress the memory dump
+        run: zstd -d dumps/memdump.raw.zst -o dumps/memdump.raw
 
       - name: Cache MemProcFS
         id: cache-vmm
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: memprocfs
-          key: memprocfs-ubuntu-latest-${{ matrix.memprocfs-version }}
+          key: memprocfs-ubuntu-24.04-${{ matrix.memprocfs-version }}
 
       - name: Download MemProcFS
         if: steps.cache-vmm.outputs.cache-hit != 'true'
@@ -98,50 +111,35 @@ jobs:
           MEMPROCFS_VERSION: ${{ matrix.memprocfs-version }}
         run: |
           mkdir -p memprocfs
-          
           PATTERN="linux_x64"
-          
-          # Fetch assets list for the specific version using env var to avoid injection
+          # the asset list of the exact version; the version comes in through the environment
           ASSETS=$(curl -sfL "https://api.github.com/repos/ufrisk/MemProcFS/releases/tags/$MEMPROCFS_VERSION")
-          
-          # Find the exact asset URL matching the pattern
           DOWNLOAD_URL=$(echo "$ASSETS" | jq -r ".assets[] | select(.name | test(\"$PATTERN\")) | .browser_download_url" | head -1)
-          
           if [ -z "$DOWNLOAD_URL" ]; then
-            echo "::error::Could not find asset for pattern $PATTERN in release $MEMPROCFS_VERSION"
+            echo "::error::no asset matching $PATTERN in release $MEMPROCFS_VERSION"
             exit 1
           fi
-          
           curl -sfL "$DOWNLOAD_URL" -o memprocfs/release.tar.gz
-          
-          cd memprocfs
-          tar -xzf release.tar.gz
-          rm -f release.tar.gz
+          tar -xzf memprocfs/release.tar.gz -C memprocfs
+          rm -f memprocfs/release.tar.gz
 
-      - name: Locate Native Library
+      - name: Locate the native library
         id: vmm-path
         run: |
-          # Only look for Linux shared objects
           VMM_LIB=$(find memprocfs -name "vmm.so" -o -name "libvmm.so" | head -1)
           if [ -z "$VMM_LIB" ]; then
-            echo "::error::Could not find native library in MemProcFS release"
+            echo "::error::no native library in the MemProcFS release"
             find memprocfs -type f | head -20
             exit 1
           fi
-          
-          # Strip leading ./ if find added it
           VMM_LIB=${VMM_LIB#./}
           DIR_NAME=$(dirname "$VMM_LIB")
-          
-          ABS_PATH="${{ github.workspace }}/$VMM_LIB"
-          ABS_DIR="${{ github.workspace }}/$DIR_NAME"
-          
-          echo "path=$ABS_PATH" >> "$GITHUB_OUTPUT"
-          echo "dir=$ABS_DIR" >> "$GITHUB_OUTPUT"
+          echo "path=$GITHUB_WORKSPACE/$VMM_LIB" >> "$GITHUB_OUTPUT"
+          echo "dir=$GITHUB_WORKSPACE/$DIR_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Run tests
+      - name: Run the tests against the dump
         env:
           VMM_DLL_PATH: ${{ steps.vmm-path.outputs.path }}
           MEMDUMP_PATH: ${{ github.workspace }}/dumps/memdump.raw
           LD_LIBRARY_PATH: ${{ steps.vmm-path.outputs.dir }}
-        run: go test -count=1 ./...
+        run: go test -count=1 -shuffle=on ./...

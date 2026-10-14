@@ -14,6 +14,7 @@ import (
 	"unsafe"
 
 	"github.com/ebitengine/purego"
+
 	"github.com/Get-Sybers/gomemprocfs/internal/ffi"
 )
 
@@ -130,13 +131,16 @@ func NewVmm(libPath string, opts ...Option) (*Vmm, error) {
 		return nil, err
 	}
 
-	if loadFunctions(lib) != nil {
+	if err := loadFunctions(lib); err != nil {
 		return nil, err
 	}
 
 	argsBytes := make([]*byte, len(args))
 	for i, arg := range args {
 		argsBytes[i], err = syscall.BytePtrFromString(arg)
+		if err != nil {
+			return nil, fmt.Errorf("vmm: argument %q: %w", arg, err)
+		}
 	}
 
 	vmmHandle := vmmInitialize(int32(len(args)), argsBytes)
